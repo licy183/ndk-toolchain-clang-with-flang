@@ -1,0 +1,11 @@
+--- a/toolchain/llvm_android/builders.py
++++ b/toolchain/llvm_android/builders.py
+@@ -153,7 +153,7 @@
+     @property
+     def llvm_projects(self) -> Set[str]:
+         proj = {'clang', 'lld', 'libcxxabi', 'libcxx', 'compiler-rt',
+-                'clang-tools-extra', 'polly', 'bolt'}
++                'clang-tools-extra', 'polly', 'bolt', 'mlir'}
+         if self.build_lldb:
+             proj.add('lldb')
+         if isinstance(self._config, configs.LinuxMuslConfig):

@@ -1,0 +1,107 @@
+name: Build Toolchain
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - r**
+  pull_request:
+  workflow_dispatch:
+jobs:
+  build:
+    name: Build Toolchain
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@main
+    - name: Free additional disk space
+      run: |
+        echo "Free additional disk space on host"
+        sudo apt purge -yq $(dpkg -l | grep '^ii' | awk '{ print $2 }' | grep -P '(cabal-|dotnet-|ghc-|libmono|php|aspnetcore)') \
+          mono-runtime-common monodoc-manual ruby
+        sudo apt autoremove -yq
+        sudo rm -rf /opt/hostedtoolcache /usr/local /usr/share/dotnet /usr/share/swift
+    - name: Build Toolchain
+      run: bash build.sh
+    - name: Waiting for debugger
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
+    - name: Upload Build Archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: output-${{ github.sha }}
+        path: ${{ github.workspace }}/output
+  build-flang:
+    name: Build Flang Libraries
+    runs-on: ubuntu-22.04
+    needs: build
+    strategy:
+      matrix:
+#         target_arch_or_type: [host, aarch64, arm, i686, x86_64]
+        target_arch_or_type: [host, aarch64, x86_64]
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@main
+    - name: Install dependicies
+      run: |
+        sudo apt update
+        sudo apt install -yq cmake ninja-build
+    - name: Fetch archives
+      uses: actions/download-artifact@v2
+      with:
+        path: ./
+    - name: Copy archives
+      run: |
+        cp output-${{ github.sha }}/*.tar.bz2 ./
+        rm -rf output-${{ github.sha }}
+    - name: Extract Tarballs
+      run: |
+        ls *.tar.bz2 | xargs -n1 tar xf
+        rm -rf *.tar.bz2
+    - name: Build Flang
+      env:
+        BUILD_ARCH_OR_TYPE: ${{ matrix.target_arch_or_type }}
+      run: bash build-flang.sh
+    - name: Waiting for debugger
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
+    - name: Upload Build Archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: output-flang-${{ matrix.target_arch_or_type }}-${{ github.sha }}
+        path: ${{ github.workspace }}/output-flang
+  package:
+    name: Package NDK Toolchain with Flang
+    runs-on: ubuntu-22.04
+    needs: build-flang
+    steps:
+    - name: Fetch archives
+      uses: actions/download-artifact@v2
+      with:
+        path: ./
+    - name: Copy archives
+      run: |
+        cp output-${{ github.sha }}/*.tar.bz2 ./
+        cp output-flang-*-${{ github.sha }}/*.tar.bz2 ./
+        rm -rf output-${{ github.sha }} output-flang-${{ github.sha }}
+    - name: Extract Tarballs
+      run: |
+        ls *.tar.bz2 | xargs -n1 tar xf
+        rm -rf *.tar.bz2
+    - name: Package
+      run: |
+        rm -rf ./clang-dev
+        mv out/install/linux-x86/clang-dev ./clang-dev
+        cp -Rv ./build-host-install/* ./clang-dev
+        cp -Rv ./build-x86_64-install/* ./clang-dev/lib/clang/*/lib/linux/x86_64
+        cp -Rv ./build-aarch64-install/* ./clang-dev/lib/clang/*/lib/linux/aarch64
+        mkdir -p output-flang-toolchain
+        tar -cjf ./output-flang-toolchain/flang-toolchain.tar.bz2 clang-dev
+    - name: Waiting for debugger
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
+    - name: Upload Build Archive
+      uses: actions/upload-artifact@v2
+      with:
+        name: output-flang-toolchain-${{ github.sha }}
+        path: ${{ github.workspace }}/output-flang-toolchain

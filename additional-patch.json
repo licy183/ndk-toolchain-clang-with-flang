@@ -1,0 +1,14 @@
+{
+    "metadata": {
+        "info": [],
+        "title": "Add support for fPIC"
+    },
+    "platforms": [
+        "android"
+    ],
+    "rel_patch_path": "Termux-add-support-for-fPIC.patch",
+    "version_range": {
+        "from": 370808,
+        "until": null
+    }
+}
