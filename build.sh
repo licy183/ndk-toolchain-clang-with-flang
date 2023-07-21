@@ -10,20 +10,27 @@ git config --global user.name "Your Name"
 git config --global user.email "you@example.com"
 git config --global color.ui false
 mkdir -p llvm-toolchain-testing && cd llvm-toolchain-testing
-repo init -u https://android.googlesource.com/platform/manifest -b llvm-toolchain-testing
-# Modified the manifest xml, to ensure only contains linux prebuilt
-sed -E 's/(^.*?(darwin|mingw|windows).*$)/<!-- \1 -->/g' .repo/manifests/default.xml > .repo/manifests/test.xml
+repo init -u https://android.googlesource.com/platform/manifest
+# Modified the manifest xml, to ensure not contain darwin prebuilt
+# XXX: Windows prebuilt?
+sed -E 's/(^.*?(darwin).*$)/<!-- \1 -->/g' ../manifest_10087095.xml > .repo/manifests/test.xml
 repo init -m test.xml
 repo sync -c
+
+# First build without flang
+pushd toolchain/llvm_android
+python build.py --no-build lldb,windows --no-musl --single-stage --skip-tests
+popd
 
 # Add patch for flang
 jq --argjson a "$(cat toolchain/llvm_android/patches/PATCHES.json)" \
     --argjson b "$(cat ../additional-patch.json)" -n '$a + [$b]' \
     > toolchain/llvm_android/patches/PATCHES.json
-cp ../Termux-add-support-for-fPIC.patch toolchain/llvm_android/patches/
+cp ../flang-undef-macros.patch toolchain/llvm_android/patches/
 
 patch -p1 < ../Build-flang.patch
 
+# Build again
 pushd toolchain/llvm_android
 python build.py --no-build lldb,windows --no-musl --single-stage --skip-tests
 popd

@@ -1,12 +1,12 @@
 {
     "metadata": {
         "info": [],
-        "title": "Add support for fPIC"
+        "title": "Undef Macros"
     },
     "platforms": [
         "android"
     ],
-    "rel_patch_path": "Termux-add-support-for-fPIC.patch",
+    "rel_patch_path": "flang-undef-macros.patch",
     "version_range": {
         "from": 370808,
         "until": null
