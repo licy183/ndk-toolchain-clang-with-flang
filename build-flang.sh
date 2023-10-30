@@ -4,7 +4,7 @@ set -e -o pipefail -u
 
 : ${BUILD_ARCH_OR_TYPE:=host}
 : ${DEFAULT_ANDROID_API_LEVEL:=21}
-: ${ANDROID_NDK:=~/lib/android-ndk-r26-beta1}
+: ${ANDROID_NDK:=~/lib/android-ndk-r26b}
 
 CC_HOST_PLATFORM=$BUILD_ARCH_OR_TYPE-linux-android$DEFAULT_ANDROID_API_LEVEL
 if [ $BUILD_ARCH_OR_TYPE = arm ]; then

@@ -1,14 +1,30 @@
-{
+[
+  {
     "metadata": {
-        "info": [],
-        "title": "Undef Macros"
+      "info": [],
+      "title": "Undef Macros"
     },
     "platforms": [
-        "android"
+      "android"
     ],
     "rel_patch_path": "flang-undef-macros.patch",
     "version_range": {
-        "from": 370808,
-        "until": null
+      "from": 370808,
+      "until": null
     }
-}
+  },
+  {
+    "metadata": {
+      "info": [],
+      "title": "Upstream D142965"
+    },
+    "platforms": [
+      "android"
+    ],
+    "rel_patch_path": "D142965.patch",
+    "version_range": {
+      "from": 413129,
+      "until": 450396
+    }
+  }
+]
