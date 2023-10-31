@@ -5,6 +5,7 @@ set -e -o pipefail -u
 : ${BUILD_ARCH_OR_TYPE:=host}
 : ${DEFAULT_ANDROID_API_LEVEL:=21}
 : ${ANDROID_NDK:=~/lib/android-ndk-r26b}
+: ${FLANG_MAKE_PROCESSES:=1}
 
 CC_HOST_PLATFORM=$BUILD_ARCH_OR_TYPE-linux-android$DEFAULT_ANDROID_API_LEVEL
 if [ $BUILD_ARCH_OR_TYPE = arm ]; then
@@ -80,9 +81,9 @@ cmake -G Ninja $_CONFIGURE_ARGS \
 				-DBUILD_TESTING=OFF \
 				$_EXTRA_CONFIGURE_ARGS \
 				$(pwd)/../out/llvm-project/flang
-ninja -j 1 $_BUILD_TARGET
+ninja -j $FLANG_MAKE_PROCESSES $_BUILD_TARGET
 if [ "$BUILD_ARCH_OR_TYPE" == "host" ]; then
-	ninja -j 1 install
+	ninja -j $FLANG_MAKE_PROCESSES install
 else
 	cp lib/lib*.a $(pwd)/../build-$BUILD_ARCH_OR_TYPE-install/
 fi

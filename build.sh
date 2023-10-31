@@ -28,7 +28,7 @@ patch -p1 < ../Build-flang.patch
 
 # Build again
 pushd toolchain/llvm_android
-python build.py --no-build lldb,windows --no-musl --single-stage --skip-tests || bash
+python build.py --no-build lldb,windows --no-musl --single-stage --skip-tests
 popd
 
 tar -cjf package-install.tar.bz2 out/install

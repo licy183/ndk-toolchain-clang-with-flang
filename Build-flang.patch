@@ -5,18 +5,7 @@
      @property
      def llvm_projects(self) -> Set[str]:
 -        proj = {'clang', 'lld', 'clang-tools-extra', 'polly', 'bolt'}
-+        proj = {'clang', 'lld', 'clang-tools-extra', 'polly', 'bolt', 'flang'}
++        proj = {'clang', 'lld', 'clang-tools-extra', 'polly', 'bolt', 'mlir'}
          if self.build_lldb:
              proj.add('lldb')
          return proj
---- a/toolchain/llvm_android/base_builders.py
-+++ b/toolchain/llvm_android/base_builders.py
-@@ -458,7 +458,7 @@
-                 args: ninja targets to build
-                 add_env: additional environment variables
-         """
--        ninja_cmd = [str(paths.NINJA_BIN_PATH)] + args
-+        ninja_cmd = [str(paths.NINJA_BIN_PATH), '-j1'] + args
-         if add_env:
-             ninja_env = self.env.copy()
-             ninja_env.update(add_env)
