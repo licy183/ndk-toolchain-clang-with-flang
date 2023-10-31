@@ -70,38 +70,4 @@ jobs:
       with:
         name: output-flang-${{ matrix.target_arch_or_type }}-${{ github.sha }}
         path: ${{ github.workspace }}/output-flang
-  package:
-    name: Package NDK Toolchain with Flang
-    runs-on: ubuntu-22.04
-    needs: build-flang
-    steps:
-    - name: Fetch archives
-      uses: actions/download-artifact@v2
-      with:
-        path: ./
-    - name: Copy archives
-      run: |
-        cp output-${{ github.sha }}/*.tar.bz2 ./
-        cp output-flang-*-${{ github.sha }}/*.tar.bz2 ./
-        rm -rf output-${{ github.sha }} output-flang-${{ github.sha }}
-    - name: Extract Tarballs
-      run: |
-        ls *.tar.bz2 | xargs -n1 tar xf
-        rm -rf *.tar.bz2
-    - name: Package
-      run: |
-        rm -rf ./clang-dev
-        mv out/install/linux-x86/clang-dev ./clang-dev
-        cp -Rv ./build-host-install/* ./clang-dev
-        cp -Rv ./build-x86_64-install/* ./clang-dev/lib/clang/*/lib/linux/x86_64
-        cp -Rv ./build-aarch64-install/* ./clang-dev/lib/clang/*/lib/linux/aarch64
-        mkdir -p output-flang-toolchain
-        tar -cjf ./output-flang-toolchain/flang-toolchain.tar.bz2 clang-dev
-    - name: Waiting for debugger
-      if: ${{ failure() }}
-      uses: mxschmitt/action-tmate@v3
-    - name: Upload Build Archive
-      uses: actions/upload-artifact@v2
-      with:
-        name: output-flang-toolchain-${{ github.sha }}
-        path: ${{ github.workspace }}/output-flang-toolchain
+
