@@ -13,7 +13,7 @@ mkdir -p llvm-toolchain && cd llvm-toolchain
 repo init -u https://android.googlesource.com/platform/manifest
 # Modified the manifest xml, to ensure not contain darwin prebuilt
 # XXX: Windows prebuilt?
-sed -E 's/(^.*?(darwin).*$)/<!-- \1 -->/g' ../manifest_10552028.xml > .repo/manifests/test.xml
+sed -E 's/(^.*?(darwin).*$)/<!-- \1 -->/g' ../manifest_11349228.xml > .repo/manifests/test.xml
 repo init -m test.xml
 repo sync -c
 
