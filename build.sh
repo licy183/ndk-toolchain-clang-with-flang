@@ -2,6 +2,7 @@
 
 set -e -o pipefail -u
 
+# Fetch source
 mkdir -p ~/bin
 export PATH=~/bin:$PATH
 curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
@@ -11,24 +12,23 @@ git config --global user.email "you@example.com"
 git config --global color.ui false
 mkdir -p llvm-toolchain && cd llvm-toolchain
 repo init -u https://android.googlesource.com/platform/manifest
-# Modified the manifest xml, to ensure not contain darwin prebuilt
-# XXX: Windows prebuilt?
-sed -E 's/(^.*?(darwin).*$)/<!-- \1 -->/g' ../manifest_10552028.xml > .repo/manifests/test.xml
+# Modified the manifest xml, to ensure only contain linux component
+sed -E 's/(^.*?(darwin|mingw|windows).*$)/<!-- \1 -->/g' ../manifest_12027248.xml > .repo/manifests/test.xml
 repo init -m test.xml
 repo sync -c
 
-# Add patch for flang
-jq --argjson a "$(cat toolchain/llvm_android/patches/PATCHES.json)" \
-    --argjson b "$(cat ../additional-patch.json)" -n '$a + $b' \
-    > toolchain/llvm_android/patches/PATCHES.json
-cp ../flang-undef-macros.patch toolchain/llvm_android/patches/
-cp ../D142965.patch toolchain/llvm_android/patches/
+# Remove duplicated repo cache
+# rm -rf .repo
 
-patch -p1 < ../Build-flang.patch
+# Remove older version prebuilts
+rm -rf $(find prebuilts/clang/host/linux-x86/clang* -maxdepth 0 | grep -v "clang-r522817" | grep -v "clang-stable")
 
-# Build again
+# Patch to build mlir
+patch -p1 < ../build-mlir.patch
+
+# Build
 pushd toolchain/llvm_android
-python build.py --no-build lldb,windows --no-musl --single-stage --skip-tests
+python build.py --no-build lldb,windows --no-musl --bootstrap-use-prebuilt --skip-tests --skip-runtimes
 popd
 
 tar -cjf package-install.tar.bz2 out/install

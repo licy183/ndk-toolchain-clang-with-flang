@@ -48,7 +48,7 @@ jobs:
     - name: Install dependicies
       run: |
         sudo apt update
-        sudo apt install -yq cmake ninja-build
+        sudo apt install -yq cmake ninja-build libzstd-dev
     - name: Fetch archives
       uses: actions/download-artifact@v2
       with:
