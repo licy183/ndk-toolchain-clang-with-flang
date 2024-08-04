@@ -74,6 +74,8 @@ if [ "$BUILD_ARCH_OR_TYPE" != "host" ]; then
 	echo "" > $NDK_STANDALONE_TOOLCHAIN_DIR/sysroot/usr/include/zstd.h
 	echo "!<arch>" > $NDK_STANDALONE_TOOLCHAIN_DIR/sysroot/usr/lib/$ANDROID_TRIPLE/libzstd.a
 	_BUILD_TARGET="Fortran_main FortranRuntime FortranDecimal"
+else
+	export LD_LIBRARY_PATH="$(pwd)/out/stage2-install/lib:${LD_LIBRARY_PATH:-}"
 fi
 
 mkdir -p build-$BUILD_ARCH_OR_TYPE-install
