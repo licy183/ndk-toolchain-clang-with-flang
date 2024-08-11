@@ -4,7 +4,7 @@ set -e -o pipefail -u
 
 : ${BUILD_ARCH_OR_TYPE:=host}
 : ${DEFAULT_ANDROID_API_LEVEL:=21}
-: ${ANDROID_NDK:=~/lib/android-ndk-r26b}
+: ${ANDROID_NDK:=~/lib/android-ndk-r27}
 : ${FLANG_MAKE_PROCESSES:=1}
 
 patch -p1 -d $(pwd)/out/llvm-project < flang-undef-macros.patch
@@ -66,8 +66,9 @@ if [ "$BUILD_ARCH_OR_TYPE" != "host" ]; then
 	export NDK_STANDALONE_TOOLCHAIN_DIR="$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64"
 	CMAKE_PROC=$BUILD_ARCH_OR_TYPE
 	test $CMAKE_PROC == "arm" && CMAKE_PROC='armv7-a'
+	test $CMAKE_PROC == "aarch64" && CMAKE_PROC='arm64-v8a'
 	_CONFIGURE_ARGS=("-DCMAKE_SYSTEM_NAME=Android")
-	_CONFIGURE_ARGS+=("-DCMAKE_SYSTEM_PROCESSOR=$CMAKE_PROC")
+	_CONFIGURE_ARGS+=("-CMAKE_ANDROID_ARCH_ABI=$CMAKE_PROC")
 	_CONFIGURE_ARGS+=("-DCMAKE_SYSTEM_VERSION=$DEFAULT_ANDROID_API_LEVEL")
 	_CONFIGURE_ARGS+=("-DCMAKE_ANDROID_NDK=$ANDROID_NDK")
 	_CONFIGURE_ARGS+=("-DCMAKE_SKIP_INSTALL_RPATH=ON")
