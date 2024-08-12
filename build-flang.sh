@@ -56,7 +56,7 @@ _CONFIGURE_ARGS=()
 _CONFIGURE_ARGS+=("-DCMAKE_C_COMPILER=$(pwd)/out/stage2-install/bin/clang")
 _CONFIGURE_ARGS+=("-DCMAKE_CXX_COMPILER=$(pwd)/out/stage2-install/bin/clang++")
 _CONFIGURE_ARGS+=("-DCMAKE_LINKER=$(pwd)/out/stage2-install/bin/ld.lld")
-_CONFIGURE_ARGS+=("-DCMAKE_CXX_FLAGS=-stdlib=libc++ -Wl,-rpath=$_HOST_RPATH")
+_CONFIGURE_ARGS+=("-DCMAKE_CXX_FLAGS=-stdlib=libc++ -Wl,-rpath=$_HOST_RPATH -Wno-deprecated-copy")
 _CONFIGURE_ARGS+=("-DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -Wl,-rpath=$_HOST_RPATH")
 _CONFIGURE_ARGS+=("-DCMAKE_INSTALL_RPATH=$_HOST_RPATH")
 
