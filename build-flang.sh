@@ -50,15 +50,13 @@ _EXTRA_CONFIGURE_ARGS="
 -DLLVM_HOST_TRIPLE=${CC_HOST_PLATFORM/-/-unknown-}
 "
 
-_HOST_RPATH='$ORIGIN:$ORIGIN/../lib/x86_64-unknown-linux-gnu:$ORIGIN/../lib'
-
 _CONFIGURE_ARGS=()
 _CONFIGURE_ARGS+=("-DCMAKE_C_COMPILER=$(pwd)/out/stage2-install/bin/clang")
 _CONFIGURE_ARGS+=("-DCMAKE_CXX_COMPILER=$(pwd)/out/stage2-install/bin/clang++")
 _CONFIGURE_ARGS+=("-DCMAKE_LINKER=$(pwd)/out/stage2-install/bin/ld.lld")
-_CONFIGURE_ARGS+=("-DCMAKE_CXX_FLAGS=-stdlib=libc++ -Wl,-rpath=$_HOST_RPATH")
-_CONFIGURE_ARGS+=("-DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++ -Wl,-rpath=$_HOST_RPATH")
-_CONFIGURE_ARGS+=("-DCMAKE_INSTALL_RPATH=$_HOST_RPATH")
+_CONFIGURE_ARGS+=("-DCMAKE_CXX_FLAGS=-stdlib=libc++ -Wno-deprecated-copy")
+_CONFIGURE_ARGS+=("-DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++")
+_CONFIGURE_ARGS+=("-DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib/x86_64-unknown-linux-gnu:\$ORIGIN/../lib")
 
 _BUILD_TARGET=""
 if [ "$BUILD_ARCH_OR_TYPE" != "host" ]; then
@@ -76,7 +74,7 @@ if [ "$BUILD_ARCH_OR_TYPE" != "host" ]; then
 	echo "!<arch>" > $NDK_STANDALONE_TOOLCHAIN_DIR/sysroot/usr/lib/$ANDROID_TRIPLE/libzstd.a
 	_BUILD_TARGET="Fortran_main FortranRuntime FortranDecimal"
 else
-	export LD_LIBRARY_PATH="$(pwd)/out/stage2-install/lib:${LD_LIBRARY_PATH:-}"
+	export LD_LIBRARY_PATH="$(pwd)/out/stage2-install/lib:$(pwd)/out/stage2-install/lib/x86_64-unknown-linux-gnu:${LD_LIBRARY_PATH:-}"
 fi
 
 mkdir -p build-$BUILD_ARCH_OR_TYPE-install

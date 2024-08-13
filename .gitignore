@@ -1,2 +1,3 @@
 # Build files
 llvm-toolchain*
+output/
