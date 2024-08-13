@@ -25,10 +25,11 @@ rm -rf $(find prebuilts/clang/host/linux-x86/clang* -maxdepth 0 | grep -v "clang
 
 # Patch to build mlir
 patch -p1 < ../build-mlir.patch
+patch -p1 < ../ship-libclang.patch
 
 # Build
 pushd toolchain/llvm_android
-python build.py --no-build lldb,windows --no-musl --bootstrap-use-prebuilt --skip-tests --skip-runtimes
+python build.py --no-build lldb,windows --no-musl --bootstrap-use-prebuilt --skip-tests --skip-runtimes --dev-package
 popd
 
 tar -cjf package-install.tar.bz2 out/install
