@@ -25,7 +25,6 @@ rm -rf $(find prebuilts/clang/host/linux-x86/clang* -maxdepth 0 | grep -v "clang
 
 # Patch to build mlir
 patch -p1 < ../build-mlir.patch
-patch -p1 < ../ship-libclang.patch
 
 # Build
 pushd toolchain/llvm_android
