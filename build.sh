@@ -28,7 +28,7 @@ patch -p1 < ../build-mlir.patch
 
 # Build
 pushd toolchain/llvm_android
-python build.py --no-build lldb,windows --no-musl --bootstrap-use-prebuilt --skip-tests --skip-runtimes --dev-package
+python build.py --no-build lldb,windows --no-musl --bootstrap-use-prebuilt --skip-tests --skip-runtimes
 popd
 
 tar -cjf package-install.tar.bz2 out/install
