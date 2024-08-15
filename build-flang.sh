@@ -4,11 +4,15 @@ set -e -o pipefail -u
 
 : ${BUILD_ARCH_OR_TYPE:=host}
 : ${DEFAULT_ANDROID_API_LEVEL:=21}
-: ${ANDROID_NDK:=~/lib/android-ndk-r26b}
+: ${ANDROID_NDK:=~/lib/android-ndk-r27}
 : ${FLANG_MAKE_PROCESSES:=1}
 
+patch -p1 -d $(pwd)/out/llvm-project < flang-undef-macros.patch
+
+ANDROID_TRIPLE="$BUILD_ARCH_OR_TYPE-linux-android"
 CC_HOST_PLATFORM=$BUILD_ARCH_OR_TYPE-linux-android$DEFAULT_ANDROID_API_LEVEL
 if [ $BUILD_ARCH_OR_TYPE = arm ]; then
+	ANDROID_TRIPLE="armv7a-linux-androideabi"
 	CC_HOST_PLATFORM=armv7a-linux-androideabi$DEFAULT_ANDROID_API_LEVEL
 elif [ $BUILD_ARCH_OR_TYPE = host ]; then
 	CC_HOST_PLATFORM=x86_64-linux-gnu
@@ -33,7 +37,7 @@ _EXTRA_CONFIGURE_ARGS="
 -DLLVM_ENABLE_FFI=ON
 -DFLANG_DEFAULT_LINKER=lld
 -DMLIR_INSTALL_AGGREGATE_OBJECTS=OFF
--DFLANG_ENABLE_WERROR=On
+-DFLANG_ENABLE_WERROR=OFF
 -DFLANG_INCLUDE_TESTS=OFF
 -DLLVM_ENABLE_ASSERTIONS=On
 -DLLVM_LIT_ARGS=-v
@@ -46,14 +50,13 @@ _EXTRA_CONFIGURE_ARGS="
 -DLLVM_HOST_TRIPLE=${CC_HOST_PLATFORM/-/-unknown-}
 "
 
-_CONFIGURE_ARGS="\
--DCMAKE_C_COMPILER=$(pwd)/out/stage2-install/bin/clang
--DCMAKE_CXX_COMPILER=$(pwd)/out/stage2-install/bin/clang++
--DCMAKE_LINKER=$(pwd)/out/stage2-install/bin/ld.lld
--DCMAKE_CXX_FLAGS=-stdlib=libc++
--DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++
--DCMAKE_INSTALL_RPATH=\\\${ORIGIN}/../lib/x86_64-unknown-linux-gnu:\\\${ORIGIN}/../lib
-"
+_CONFIGURE_ARGS=()
+_CONFIGURE_ARGS+=("-DCMAKE_C_COMPILER=$(pwd)/out/stage2-install/bin/clang")
+_CONFIGURE_ARGS+=("-DCMAKE_CXX_COMPILER=$(pwd)/out/stage2-install/bin/clang++")
+_CONFIGURE_ARGS+=("-DCMAKE_LINKER=$(pwd)/out/stage2-install/bin/ld.lld")
+_CONFIGURE_ARGS+=("-DCMAKE_CXX_FLAGS=-stdlib=libc++ -Wno-deprecated-copy")
+_CONFIGURE_ARGS+=("-DCMAKE_EXE_LINKER_FLAGS=-stdlib=libc++")
+_CONFIGURE_ARGS+=("-DCMAKE_INSTALL_RPATH=\$ORIGIN:\$ORIGIN/../lib/x86_64-unknown-linux-gnu:\$ORIGIN/../lib")
 
 _BUILD_TARGET=""
 if [ "$BUILD_ARCH_OR_TYPE" != "host" ]; then
@@ -61,21 +64,24 @@ if [ "$BUILD_ARCH_OR_TYPE" != "host" ]; then
 	export NDK_STANDALONE_TOOLCHAIN_DIR="$ANDROID_NDK/toolchains/llvm/prebuilt/linux-x86_64"
 	CMAKE_PROC=$BUILD_ARCH_OR_TYPE
 	test $CMAKE_PROC == "arm" && CMAKE_PROC='armv7-a'
-	_CONFIGURE_ARGS="-DCMAKE_SYSTEM_NAME=Android"
-	_CONFIGURE_ARGS+=" -DCMAKE_SYSTEM_PROCESSOR=$CMAKE_PROC"
-	_CONFIGURE_ARGS+=" -DCMAKE_SYSTEM_VERSION=$DEFAULT_ANDROID_API_LEVEL"
-	_CONFIGURE_ARGS+=" -DCMAKE_ANDROID_NDK=$ANDROID_NDK"
-	_CONFIGURE_ARGS+=" -DCMAKE_SKIP_INSTALL_RPATH=ON"
+	test $CMAKE_PROC == "aarch64" && CMAKE_PROC='arm64-v8a'
+	_CONFIGURE_ARGS=("-DCMAKE_SYSTEM_NAME=Android")
+	_CONFIGURE_ARGS+=("-DCMAKE_ANDROID_ARCH_ABI=$CMAKE_PROC")
+	_CONFIGURE_ARGS+=("-DCMAKE_SYSTEM_VERSION=$DEFAULT_ANDROID_API_LEVEL")
+	_CONFIGURE_ARGS+=("-DCMAKE_ANDROID_NDK=$ANDROID_NDK")
+	_CONFIGURE_ARGS+=("-DCMAKE_SKIP_INSTALL_RPATH=ON")
+	echo "" > $NDK_STANDALONE_TOOLCHAIN_DIR/sysroot/usr/include/zstd.h
+	echo "!<arch>" > $NDK_STANDALONE_TOOLCHAIN_DIR/sysroot/usr/lib/$ANDROID_TRIPLE/libzstd.a
 	_BUILD_TARGET="Fortran_main FortranRuntime FortranDecimal"
 else
-	export LD_LIBRARY_PATH="$(pwd)/out/stage2-install/lib:${LD_LIBRARY_PATH:-}"
+	export LD_LIBRARY_PATH="$(pwd)/out/stage2-install/lib:$(pwd)/out/stage2-install/lib/x86_64-unknown-linux-gnu:${LD_LIBRARY_PATH:-}"
 fi
 
 mkdir -p build-$BUILD_ARCH_OR_TYPE-install
 
 mkdir -p build-$BUILD_ARCH_OR_TYPE
 pushd build-$BUILD_ARCH_OR_TYPE
-cmake -G Ninja $_CONFIGURE_ARGS \
+cmake -G Ninja "${_CONFIGURE_ARGS[@]}" \
 				-DCMAKE_INSTALL_PREFIX=$(pwd)/../build-$BUILD_ARCH_OR_TYPE-install \
 				-DDOXYGEN_EXECUTABLE= \
 				-DBUILD_TESTING=OFF \
