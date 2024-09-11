@@ -13,7 +13,7 @@ git config --global color.ui false
 mkdir -p llvm-toolchain && cd llvm-toolchain
 repo init -u https://android.googlesource.com/platform/manifest
 # Modified the manifest xml, to ensure only contain linux component
-sed -E 's/(^.*?(darwin|mingw|windows).*$)/<!-- \1 -->/g' ../manifest_12027248.xml > .repo/manifests/test.xml
+sed -E 's/(^.*?(darwin|mingw|windows).*$)/<!-- \1 -->/g' ../manifest_12285214.xml > .repo/manifests/test.xml
 repo init -m test.xml
 repo sync -c
 
