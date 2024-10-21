@@ -4,7 +4,7 @@ set -e -o pipefail -u
 
 : ${BUILD_ARCH_OR_TYPE:=host}
 : ${DEFAULT_ANDROID_API_LEVEL:=21}
-: ${ANDROID_NDK:=~/lib/android-ndk-r27b}
+: ${ANDROID_NDK:=~/lib/android-ndk-r27c}
 : ${FLANG_MAKE_PROCESSES:=1}
 
 patch -p1 -d $(pwd)/out/llvm-project < flang-undef-macros.patch
